@@ -1,4 +1,4 @@
-name = "gameoflife_gleam"
+name = "gameoflife"
 version = "1.0.0"
 
 description = "Conway's Game of Life implemented in Gleam"
@@ -7,6 +7,7 @@ repository = { type = "github", user = "afarinetti", repo = "https://github.com/
 
 [dependencies]
 gleam_stdlib = ">= 0.34.0 and < 2.0.0"
+fmglee = ">= 1.0.0 and < 2.0.0"
 
 [dev-dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"
