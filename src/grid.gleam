@@ -38,12 +38,24 @@ pub fn is_any_cell_alive(this: Grid) -> Bool {
   set.size(this.grid) > 0
 }
 
+pub type GridCell {
+  GridCell(row: Int, col: Int, state: cell.Cell)
+}
+
 pub fn to_iterator(this: Grid) -> iterator.Iterator(#(Int, cell.Cell)) {
   iterator.range(0, { this.num_rows * this.num_cols } - 1)
   |> iterator.map(fn(idx) {
     #(idx, cell.from_bool(set.contains(this.grid, idx)))
   })
 }
+
+// pub fn to_iterator2(this: Grid) -> iterator.Iterator(GridCell) {
+//   iterator.range(0, this.num_rows - 1)
+//   |> iterator.zip(iterator.range(0, this.num_cols - 1))
+//   |> iterator.to_list
+//   |> io.debug
+//   iterator.empty()
+// }
 
 pub fn display(this: Grid) -> Grid {
   to_iterator(this)
