@@ -1,6 +1,11 @@
 import cell
+import gleam/bool
+import gleam/int
+import gleam/iterator
 import gleam/list
 import gleam/option
+import gleam/string
+import gleam/string_tree
 import grid
 import operation
 
@@ -61,36 +66,6 @@ fn apply_rules(
   let neighbor_count = neighbor_count(this, row, col)
   let alive = grid.is_cell_alive(this.grid, row, col)
 
-  // case alive {
-  //   // RULES FOR LIVE CELLS //////////////////////////////////////////
-  //   True -> {
-  //     case neighbor_count {
-  //       // rule 1: any live cell with fewer than two live neighbors dies,
-  //       //          as if caused by under-population.
-  //       c if c < 2 -> option.Some(operation.new(row, col, cell.Dead))
-  //
-  //       // rule 2: any live cell with two or three live neighbors lives on
-  //       //          to the next generation.
-  //       c if c <= 3 -> option.None
-  //
-  //       // rule 3: any live cell with more than three neighbors dies, as if
-  //       //          caused by overcrowding.
-  //       _ -> option.Some(operation.new(row, col, cell.Dead))
-  //     }
-  //   }
-  //   // RULES FOR DEAD CELLS //////////////////////////////////////////
-  //   False -> {
-  //     case neighbor_count {
-  //       // rule 4: any dead cell with exactly three live neighbors becomes
-  //       //          a live cell, as if by reproduction.
-  //       c if c == 3 -> option.Some(operation.new(row, col, cell.Alive))
-  //
-  //       // otherwise
-  //       _ -> option.None
-  //     }
-  //   }
-  // }
-
   case alive, neighbor_count {
     // RULES FOR LIVE CELLS ////////////////////////////////////////////////////
     // rule 1: any live cell with fewer than two live neighbors dies,
@@ -115,6 +90,42 @@ fn apply_rules(
   }
 }
 
+fn apply_operation(this: ConwaySim, op: operation.Operation) -> ConwaySim {
+  ConwaySim(grid.set(this.grid, op.row, op.col, op.state), this.generation)
+}
+
 pub fn step(this: ConwaySim) -> ConwaySim {
-  todo
+  let sim_after_step: ConwaySim =
+    grid.to_iterator_coords(this.grid)
+    |> iterator.filter_map(fn(coords: #(Int, Int)) {
+      let #(row, col) = coords
+      let operation = apply_rules(this, row, col)
+      case operation {
+        option.Some(op) -> Ok(op)
+        option.None -> Error(Nil)
+      }
+    })
+    |> iterator.fold(this, fn(sim: ConwaySim, op: operation.Operation) {
+      apply_operation(sim, op)
+    })
+
+  ConwaySim(sim_after_step.grid, this.generation + 1)
+}
+
+pub fn to_string(this: ConwaySim) -> String {
+  let divider = string.repeat("-", { this.grid.num_cols * 2 } + 2) <> "\n"
+
+  string_tree.new()
+  |> string_tree.append(divider)
+  |> string_tree.append("Generation: ")
+  |> string_tree.append(int.to_string(this.generation))
+  |> string_tree.append("\n")
+  |> string_tree.append(divider)
+  |> string_tree.append(grid.to_string(this.grid))
+  |> string_tree.append(divider)
+  |> string_tree.append("Any cell alive?: ")
+  |> string_tree.append(bool.to_string(grid.is_any_cell_alive(this.grid)))
+  |> string_tree.append("\n")
+  |> string_tree.append(divider)
+  |> string_tree.to_string
 }
